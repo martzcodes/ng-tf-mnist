@@ -1,0 +1,6 @@
+<div *ngIf="loading; else canvas">
+  Loading... {{ modelAccuracy$ | async | number }}
+</div>
+<ng-template #canvas>
+  <app-mnist-canvas (submission)="submission($event)"></app-mnist-canvas>
+</ng-template>
