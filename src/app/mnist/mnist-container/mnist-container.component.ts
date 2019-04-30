@@ -10,6 +10,9 @@ import { Observable } from 'rxjs';
 export class MnistContainerComponent implements OnInit {
   loading = true;
   modelAccuracy$: Observable<number>;
+  prediction: number;
+  distribution: number[];
+  layerImgs: any[];
 
   constructor(private mnist: MnistService) {
     this.modelAccuracy$ = this.mnist.accuracy;
@@ -22,6 +25,9 @@ export class MnistContainerComponent implements OnInit {
   }
 
   submission(img) {
-    this.mnist.infer(img);
+    const { prediction, distribution, layerImgs } = this.mnist.infer(img);
+    this.prediction = prediction as number;
+    this.distribution = distribution;
+    this.layerImgs = layerImgs;
   }
 }

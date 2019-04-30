@@ -4,3 +4,10 @@
 <ng-template #canvas>
   <app-mnist-canvas (submission)="submission($event)"></app-mnist-canvas>
 </ng-template>
+<div *ngFor="let layer of layerImgs">
+  <div *ngIf="layer.multiple" class="layer">
+    <div *ngFor="let img of layer.data">
+      <app-mnist-img [data]="img"></app-mnist-img>
+    </div>
+  </div>
+</div>

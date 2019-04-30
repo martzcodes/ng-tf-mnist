@@ -140,7 +140,7 @@ export class MnistService {
     return this.model.fit(trainXs, trainYs, {
       batchSize: BATCH_SIZE,
       validationData: [testXs, testYs],
-      epochs: 5,
+      epochs: 10,
       shuffle: true,
       callbacks: {
         onEpochEnd: async (epoch, logs) => {
@@ -156,6 +156,7 @@ export class MnistService {
   infer(img) {
     const inputs = tf.tensor4d(img, [1, 28, 28, 1]);
     inputs.print();
+    const layerImgs = [];
     for (let i = 0; i < this.model.layers.length; i++) {
       const tempModel = tf.sequential();
       for (let k = 0; k <= i; k++) {
@@ -165,21 +166,26 @@ export class MnistService {
       const tempOutput = (tempModel.predict(inputs) as any).dataSync();
       const tempShape = tempModel.layers[tempModel.layers.length - 1]
         .outputShape as any;
-      let tempImgs = null;
+      let tempImgs = [];
       if (tempShape.length === 4) {
-        tempImgs = tf.tensor(tempOutput, [
-          1,
-          tempShape[1],
-          tempShape[2],
-          tempShape[3]
-        ]);
+        let ind = 0;
+        tempImgs.push([]);
+        for (let m = 0; m < tempOutput.length; m++) {
+          if (m >= (ind + 1) * tempShape[1] * tempShape[2]) {
+            ind++;
+            tempImgs.push([]);
+          }
+          tempImgs[ind].push(255 * tempOutput[m]);
+        }
+        layerImgs.push({ multiple: true, data: tempImgs });
       } else {
-        tempImgs = tempOutput;
+        tempImgs = tempOutput.map(out => 255 * out);
+        layerImgs.push({ multiple: false, data: tempImgs });
       }
-      console.log(tempImgs);
 
       // tempModel.dispose();
     }
+    console.log(layerImgs);
     const output = this.model.predict(inputs) as any;
     const distribution = output.dataSync();
     console.log({ distribution });
@@ -188,6 +194,6 @@ export class MnistService {
     console.log({ prediction });
     inputs.dispose();
     output.dispose();
-    return { prediction, distribution };
+    return { prediction, distribution, layerImgs };
   }
 }

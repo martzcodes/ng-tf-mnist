@@ -44,7 +44,7 @@ export class MnistCanvasComponent implements AfterViewInit {
     canvasEl.height = this.height;
 
     // set some default properties about the line
-    this.cx.lineWidth = 3;
+    this.cx.lineWidth = 20;
     this.cx.lineCap = 'round';
     this.cx.strokeStyle = '#FFF';
 
