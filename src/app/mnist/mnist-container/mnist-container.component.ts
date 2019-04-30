@@ -30,4 +30,8 @@ export class MnistContainerComponent implements OnInit {
     this.distribution = distribution;
     this.layerImgs = layerImgs;
   }
+
+  toggleVisor() {
+    this.mnist.toggle();
+  }
 }

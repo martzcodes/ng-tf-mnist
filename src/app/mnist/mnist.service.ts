@@ -3,6 +3,7 @@ import { MnistData } from './mnist-data';
 import * as tf from '@tensorflow/tfjs';
 import * as tfvis from '@tensorflow/tfjs-vis';
 import { Subject, BehaviorSubject } from 'rxjs';
+import { Visor } from '@tensorflow/tfjs-vis/dist/visor';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +12,7 @@ export class MnistService {
   data: MnistData;
   accuracy: BehaviorSubject<number> = new BehaviorSubject(null);
   model: tf.Sequential;
+  visor: Visor;
 
   constructor() {}
 
@@ -45,10 +47,15 @@ export class MnistService {
     this.data = new MnistData();
     await this.data.load();
     this.model = this.getModel();
-    // tfvis.show.modelSummary({ name: 'Model Architecture' }, model);
+    this.visor = tfvis.visor();
+    tfvis.show.modelSummary({ name: 'Model Architecture' }, this.model);
 
     await this.train();
-    console.log(this.model);
+    this.visor.close();
+  }
+
+  toggle() {
+    this.visor.toggle();
   }
 
   getModel() {
@@ -65,7 +72,7 @@ export class MnistService {
       tf.layers.conv2d({
         inputShape: [IMAGE_WIDTH, IMAGE_HEIGHT, IMAGE_CHANNELS],
         kernelSize: 3,
-        filters: 16,
+        filters: 6,
         activation: 'relu'
       })
     );
@@ -77,13 +84,9 @@ export class MnistService {
     // Repeat another conv2d + maxPooling stack.
     // Note that we have more filters in the convolution.
     model.add(
-      tf.layers.conv2d({ kernelSize: 3, filters: 32, activation: 'relu' })
+      tf.layers.conv2d({ kernelSize: 3, filters: 16, activation: 'relu' })
     );
     model.add(tf.layers.maxPooling2d({ poolSize: 2, strides: 2 }));
-
-    model.add(
-      tf.layers.conv2d({ kernelSize: 3, filters: 32, activation: 'relu' })
-    );
 
     // Now we flatten the output from the 2D filters into a 1D vector to prepare
     // it for input into our last layer. This is common practice when feeding
@@ -116,12 +119,12 @@ export class MnistService {
   }
 
   async train() {
-    // const metrics = ['loss', 'val_loss', 'acc', 'val_acc'];
-    // const container = {
-    //   name: 'Model Training',
-    //   styles: { height: '1000px' }
-    // };
-    // const fitCallbacks = tfvis.show.fitCallbacks(container, metrics);
+    const metrics = ['loss', 'val_loss', 'acc', 'val_acc'];
+    const container = {
+      name: 'Model Training',
+      styles: { height: '1000px' }
+    };
+    const fitCallbacks = tfvis.show.fitCallbacks(container, metrics);
 
     const BATCH_SIZE = 512;
     const TRAIN_DATA_SIZE = 5500;
@@ -143,6 +146,7 @@ export class MnistService {
       epochs: 10,
       shuffle: true,
       callbacks: {
+        ...fitCallbacks,
         onEpochEnd: async (epoch, logs) => {
           const valAcc = logs.val_acc;
           console.log(`Accuracy: ${valAcc}`);
@@ -162,7 +166,6 @@ export class MnistService {
       for (let k = 0; k <= i; k++) {
         tempModel.add(this.model.layers[k]);
       }
-      console.log(tempModel.layers[tempModel.layers.length - 1]);
       const tempOutput = (tempModel.predict(inputs) as any).dataSync();
       const tempShape = tempModel.layers[tempModel.layers.length - 1]
         .outputShape as any;
@@ -177,21 +180,28 @@ export class MnistService {
           }
           tempImgs[ind].push(255 * tempOutput[m]);
         }
-        layerImgs.push({ multiple: true, data: tempImgs });
+        layerImgs.push({
+          layer: i + 1,
+          name: tempModel.layers[tempModel.layers.length - 1].name,
+          multiple: true,
+          data: tempImgs
+        });
       } else {
         tempImgs = tempOutput.map(out => 255 * out);
-        layerImgs.push({ multiple: false, data: tempImgs });
+        layerImgs.push({
+          layer: i + 1,
+          name: tempModel.layers[tempModel.layers.length - 1].name,
+          multiple: false,
+          data: tempImgs
+        });
       }
 
       // tempModel.dispose();
     }
-    console.log(layerImgs);
     const output = this.model.predict(inputs) as any;
     const distribution = output.dataSync();
-    console.log({ distribution });
     const axis = 1;
     const prediction = Array.from(output.argMax(axis).dataSync())[0];
-    console.log({ prediction });
     inputs.dispose();
     output.dispose();
     return { prediction, distribution, layerImgs };

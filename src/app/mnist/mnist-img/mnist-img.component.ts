@@ -22,8 +22,8 @@ export class MnistImgComponent implements AfterViewInit {
   @ViewChild('canvas') public canvas: ElementRef;
 
   // setting a width and height for the canvas
-  @Input() public width = 200;
-  @Input() public height = 200;
+  @Input() public width = 100;
+  @Input() public height = 100;
 
   private cx: CanvasRenderingContext2D;
 
@@ -70,19 +70,5 @@ export class MnistImgComponent implements AfterViewInit {
 
     this.cx.scale(scaleFactor, scaleFactor);
     this.cx.drawImage(newCanvas, 0, 0);
-
-    // var srcCtx = $("#src")[0].getContext("2d");
-    // srcCtx.fillRect(0, 0, 50, 50);
-    // var imageData = srcCtx.getImageData(0, 0, 100, 100);
-    // var destCtx = $("#dest")[0].getContext("2d");
-
-    // var newCanvas = $("<canvas>")
-    //     .attr("width", imageData.width)
-    //     .attr("height", imageData.height)[0];
-
-    // newCanvas.getContext("2d").putImageData(imageData, 0, 0);
-
-    // destCtx.scale(1.5, 1.5);
-    // destCtx.drawImage(newCanvas, 0, 0);
   }
 }

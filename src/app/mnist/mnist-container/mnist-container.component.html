@@ -1,13 +1,27 @@
-<div *ngIf="loading; else canvas">
-  Loading... {{ modelAccuracy$ | async | number }}
+<div *ngIf="loading; else canvas" style="text-align: center">
+  <h1>Loading...</h1>
+  <h2 *ngIf="modelAccuracy$ | async as acc">
+    Epoch Accuracy: {{ acc | number }}
+  </h2>
 </div>
 <ng-template #canvas>
+  <button (click)="toggleVisor()">Toggle Visor</button>
   <app-mnist-canvas (submission)="submission($event)"></app-mnist-canvas>
-</ng-template>
-<div *ngFor="let layer of layerImgs">
-  <div *ngIf="layer.multiple" class="layer">
-    <div *ngFor="let img of layer.data">
-      <app-mnist-img [data]="img"></app-mnist-img>
+  <div *ngFor="let layer of layerImgs" style="text-align: center">
+    <h3>Layer {{ layer.layer }}: {{ layer.name }}</h3>
+    <div *ngIf="layer.multiple; else dense" class="layer">
+      <div *ngFor="let img of layer.data" class="layer-img">
+        <app-mnist-img [data]="img"></app-mnist-img>
+      </div>
     </div>
+    <ng-template #dense>
+      <div class="layer">
+        <div *ngFor="let pixel of layer.data">
+          <app-mnist-pixel [data]="pixel"></app-mnist-pixel>
+        </div>
+      </div>
+    </ng-template>
   </div>
-</div>
+  <h1>Prediction: {{ prediction }}</h1>
+  <pre>{{ distribution | json }}</pre>
+</ng-template>

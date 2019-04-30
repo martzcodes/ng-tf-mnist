@@ -1,4 +1,10 @@
 .layer {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  display: flex;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+}
+
+.layer-img {
+  margin: 5px;
 }

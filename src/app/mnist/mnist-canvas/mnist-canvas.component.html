@@ -1,5 +1,8 @@
-<div>
-  <button (click)="submit()">Submit</button>
+<div class="canvas-container">
   <!-- <button (click)="reset()">Reset</button> -->
+  <h1>Draw a Number and Hit Submit</h1>
   <canvas #canvas></canvas>
+  <button (click)="submit()">Submit</button>
+  <h2>Downsampled Input (Input Layer)</h2>
+  <canvas #downsampled></canvas>
 </div>
