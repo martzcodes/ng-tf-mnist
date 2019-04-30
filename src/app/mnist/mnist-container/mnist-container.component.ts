@@ -25,10 +25,16 @@ export class MnistContainerComponent implements OnInit {
   }
 
   submission(img) {
-    const { prediction, distribution, layerImgs } = this.mnist.infer(img);
-    this.prediction = prediction as number;
-    this.distribution = distribution;
-    this.layerImgs = layerImgs;
+    if (img) {
+      const { prediction, distribution, layerImgs } = this.mnist.infer(img);
+      this.prediction = prediction as number;
+      this.distribution = distribution;
+      this.layerImgs = layerImgs;
+    } else {
+      this.prediction = null;
+      this.distribution = null;
+      this.layerImgs = [];
+    }
   }
 
   toggleVisor() {

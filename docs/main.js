@@ -175,7 +175,7 @@ module.exports = "canvas {\n  border: 1px solid #000;\n}\n\n.canvas-container {\
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"canvas-container\">\n  <!-- <button (click)=\"reset()\">Reset</button> -->\n  <h1>Draw a Number and Hit Submit</h1>\n  <canvas #canvas></canvas>\n  <button (click)=\"submit()\">Submit</button>\n  <h2>Downsampled Input (Input Layer)</h2>\n  <canvas #downsampled></canvas>\n</div>\n"
+module.exports = "<div class=\"canvas-container\">\n  <!-- <button (click)=\"reset()\">Reset</button> -->\n  <h1>Draw a Number and Hit Submit</h1>\n  <canvas #canvas></canvas>\n  <button (click)=\"submit()\">Submit</button>\n  <button (click)=\"reset()\">Reset</button>\n  <h2>Downsampled Input (Input Layer)</h2>\n  <canvas #downsampled></canvas>\n</div>\n"
 
 /***/ }),
 
@@ -210,7 +210,6 @@ var MnistCanvasComponent = /** @class */ (function () {
     MnistCanvasComponent.prototype.init = function () {
         // get the context
         var canvasEl = this.canvas.nativeElement;
-        this.cx = null;
         this.cx = canvasEl.getContext('2d', {
             alpha: false
         });
@@ -221,6 +220,8 @@ var MnistCanvasComponent = /** @class */ (function () {
         this.cx.lineWidth = 0.15 * this.width;
         this.cx.lineCap = 'round';
         this.cx.strokeStyle = '#FFF';
+        this.cx.fillStyle = '#000';
+        this.cx.fillRect(0, 0, this.width, this.height);
         // we'll implement this method to start capturing mouse events
         this.captureEvents(canvasEl);
         this.initDown();
@@ -297,6 +298,7 @@ var MnistCanvasComponent = /** @class */ (function () {
     };
     MnistCanvasComponent.prototype.reset = function () {
         this.init();
+        this.submission.emit(null);
     };
     MnistCanvasComponent.prototype.downScaleCanvas = function (cv) {
         this.initDown();
@@ -360,7 +362,7 @@ module.exports = ".layer {\n  display: flex;\n  text-align: center;\n  align-ite
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "<div *ngIf=\"loading; else canvas\" style=\"text-align: center\">\n  <h1>Loading...</h1>\n  <h2 *ngIf=\"modelAccuracy$ | async as acc\">\n    Epoch Accuracy: {{ acc | number }}\n  </h2>\n</div>\n<ng-template #canvas>\n  <button (click)=\"toggleVisor()\">Toggle Visor</button>\n  <app-mnist-canvas (submission)=\"submission($event)\"></app-mnist-canvas>\n  <div *ngFor=\"let layer of layerImgs\" style=\"text-align: center\">\n    <h3>Layer {{ layer.layer }}: {{ layer.name }}</h3>\n    <div *ngIf=\"layer.multiple; else dense\" class=\"layer\">\n      <div *ngFor=\"let img of layer.data\" class=\"layer-img\">\n        <app-mnist-img [data]=\"img\"></app-mnist-img>\n      </div>\n    </div>\n    <ng-template #dense>\n      <div class=\"layer\">\n        <div *ngFor=\"let pixel of layer.data\">\n          <app-mnist-pixel [data]=\"pixel\"></app-mnist-pixel>\n        </div>\n      </div>\n    </ng-template>\n  </div>\n  <h1>Prediction: {{ prediction }}</h1>\n  <pre>{{ distribution | json }}</pre>\n</ng-template>\n"
+module.exports = "<div *ngIf=\"loading; else canvas\" style=\"text-align: center\">\n  <h1>Loading...</h1>\n  <h2 *ngIf=\"modelAccuracy$ | async as acc\">\n    Epoch Accuracy: {{ acc | number }}\n  </h2>\n</div>\n<ng-template #canvas>\n  <button (click)=\"toggleVisor()\">Toggle Visor</button>\n  <app-mnist-canvas (submission)=\"submission($event)\"></app-mnist-canvas>\n  <div *ngFor=\"let layer of layerImgs\" style=\"text-align: center\">\n    <h3>Layer {{ layer.layer }}: {{ layer.name }}</h3>\n    <div *ngIf=\"layer.multiple; else dense\" class=\"layer\">\n      <div *ngFor=\"let img of layer.data\" class=\"layer-img\">\n        <app-mnist-img [data]=\"img\"></app-mnist-img>\n      </div>\n    </div>\n    <ng-template #dense>\n      <div class=\"layer\">\n        <div *ngFor=\"let pixel of layer.data\">\n          <app-mnist-pixel [data]=\"pixel\"></app-mnist-pixel>\n        </div>\n      </div>\n    </ng-template>\n  </div>\n  <h1 *ngIf=\"prediction\">Prediction: {{ prediction }}</h1>\n  <pre *ngIf=\"distribution\">{{ distribution | json }}</pre>\n</ng-template>\n<div>\n  <h1>What is this?</h1>\n  <p>\n    At ng-conf 2019 I did a tensorflowjs workshop where\n    <a href=\"http://www.cs.cmu.edu/~aharley/vis/\">this was demoed.</a>\n  </p>\n  <p>\n    Ironically... it doesn't actually use tensorflowjs (or Angular), so I wanted\n    to do a quick recreation.\n  </p>\n  <p>...but... what does it do?</p>\n  <p>\n    You can sketch a number (0-9) and a Convolutional Neural Network will\n    attempt to predict what number you wrote.\n  </p>\n  <p>Once you hit submit, you can see the output of each layer in the CNN.</p>\n  <p>\n    The model is very roughly tuned, so the predictions are not very good... I\n    just wanted to put this together as a VERY rough POC\n  </p>\n  <p>Which also explains the lack of styles...</p>\n</div>\n"
 
 /***/ }),
 
@@ -393,10 +395,17 @@ var MnistContainerComponent = /** @class */ (function () {
         });
     };
     MnistContainerComponent.prototype.submission = function (img) {
-        var _a = this.mnist.infer(img), prediction = _a.prediction, distribution = _a.distribution, layerImgs = _a.layerImgs;
-        this.prediction = prediction;
-        this.distribution = distribution;
-        this.layerImgs = layerImgs;
+        if (img) {
+            var _a = this.mnist.infer(img), prediction = _a.prediction, distribution = _a.distribution, layerImgs = _a.layerImgs;
+            this.prediction = prediction;
+            this.distribution = distribution;
+            this.layerImgs = layerImgs;
+        }
+        else {
+            this.prediction = null;
+            this.distribution = null;
+            this.layerImgs = [];
+        }
     };
     MnistContainerComponent.prototype.toggleVisor = function () {
         this.mnist.toggle();
@@ -826,29 +835,6 @@ var MnistService = /** @class */ (function () {
     function MnistService() {
         this.accuracy = new rxjs__WEBPACK_IMPORTED_MODULE_5__["BehaviorSubject"](null);
     }
-    // showExamples() {
-    //   // Create a container in the visor
-    //   const surface = tfvis
-    //     .visor()
-    //     .surface({ name: 'Input Data Examples', tab: 'Input Data' });
-    //   // Get the examples
-    //   const examples = this.data.nextTestBatch(20);
-    //   const numExamples = examples.xs.shape[0];
-    //   // Create a canvas element to render each example
-    //   for (let i = 0; i < numExamples; i++) {
-    //     const imageTensor = tf.tidy(() => {
-    //       // Reshape the image to 28x28 px
-    //       return examples.xs
-    //         .slice([i, 0], [1, examples.xs.shape[1]])
-    //         .reshape([28, 28, 1]);
-    //     });
-    //     const canvas = document.createElement('canvas');
-    //     canvas.width = 28;
-    //     canvas.height = 28;
-    //     tf.browser.toPixels(imageTensor as any, canvas);
-    //     surface.drawArea.appendChild(canvas);
-    //   }
-    // }
     MnistService.prototype.run = function () {
         return tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"](this, void 0, void 0, function () {
             return tslib__WEBPACK_IMPORTED_MODULE_0__["__generator"](this, function (_a) {
@@ -942,7 +928,7 @@ var MnistService = /** @class */ (function () {
                 return [2 /*return*/, this.model.fit(trainXs, trainYs, {
                         batchSize: BATCH_SIZE,
                         validationData: [testXs, testYs],
-                        epochs: 10,
+                        epochs: 1,
                         shuffle: true,
                         callbacks: tslib__WEBPACK_IMPORTED_MODULE_0__["__assign"]({}, fitCallbacks, { onEpochEnd: function (epoch, logs) { return tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"](_this, void 0, void 0, function () {
                                 var valAcc;

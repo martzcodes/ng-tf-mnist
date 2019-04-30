@@ -22,6 +22,28 @@
       </div>
     </ng-template>
   </div>
-  <h1>Prediction: {{ prediction }}</h1>
-  <pre>{{ distribution | json }}</pre>
+  <h1 *ngIf="prediction">Prediction: {{ prediction }}</h1>
+  <pre *ngIf="distribution">{{ distribution | json }}</pre>
 </ng-template>
+<div>
+  <h1>What is this?</h1>
+  <p>
+    At ng-conf 2019 I did a tensorflowjs workshop where
+    <a href="http://www.cs.cmu.edu/~aharley/vis/">this was demoed.</a>
+  </p>
+  <p>
+    Ironically... it doesn't actually use tensorflowjs (or Angular), so I wanted
+    to do a quick recreation.
+  </p>
+  <p>...but... what does it do?</p>
+  <p>
+    You can sketch a number (0-9) and a Convolutional Neural Network will
+    attempt to predict what number you wrote.
+  </p>
+  <p>Once you hit submit, you can see the output of each layer in the CNN.</p>
+  <p>
+    The model is very roughly tuned, so the predictions are not very good... I
+    just wanted to put this together as a VERY rough POC
+  </p>
+  <p>Which also explains the lack of styles...</p>
+</div>

@@ -36,7 +36,6 @@ export class MnistCanvasComponent implements AfterViewInit {
   private init() {
     // get the context
     const canvasEl: HTMLCanvasElement = this.canvas.nativeElement;
-    this.cx = null;
     this.cx = canvasEl.getContext('2d', {
       alpha: false
     });
@@ -49,6 +48,9 @@ export class MnistCanvasComponent implements AfterViewInit {
     this.cx.lineWidth = 0.15 * this.width;
     this.cx.lineCap = 'round';
     this.cx.strokeStyle = '#FFF';
+
+    this.cx.fillStyle = '#000';
+    this.cx.fillRect(0, 0, this.width, this.height);
 
     // we'll implement this method to start capturing mouse events
     this.captureEvents(canvasEl);
@@ -150,6 +152,7 @@ export class MnistCanvasComponent implements AfterViewInit {
 
   reset() {
     this.init();
+    this.submission.emit(null);
   }
 
   downScaleCanvas(cv) {
